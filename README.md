@@ -96,7 +96,7 @@ Todas las rutas de la API están bajo el prefijo `/api`.
 
 | Método | Endpoint | Descripción | Requiere Autenticación | Cuerpo del Request / Parámetros |
 | :--- | :--- | :--- | :---: | :--- |
-| **POST** | `/api/register` | Registrar un nuevo usuario | No | `name`, `email`, `password`, `password_confirmation` |
+| **POST** | `/api/register` | Registrar un nuevo usuario | No | `name`, `username`, `email`, `password`, `password_confirmation` |
 | **POST** | `/api/login` | Iniciar sesión y obtener token JWT | No | `email`, `password` |
 | **POST** | `/api/logout` | Cerrar sesión e invalidar el token | Sí (Bearer) | Ninguno |
 | **GET** | `/api/me` | Obtener el perfil del usuario autenticado | Sí (Bearer) | Ninguno |
