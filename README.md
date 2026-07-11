@@ -111,3 +111,135 @@ Todas las rutas de la API están bajo el prefijo `/api`.
 > [!TIP]
 > Para probar los endpoints que requieren autenticación, debes incluir el token obtenido en el login dentro de las cabeceras HTTP de tu solicitud como `Authorization: Bearer <tu_token>`.
 
+---
+
+## 📸 Entregables de la Práctica (Capturas y Código)
+
+A continuación se presentan las capturas de pantalla de la implementación y el código de las modificaciones realizadas para el campo **username** (Nombre de usuario).
+
+### 1. Capturas de Pantalla
+
+#### 📝 Formulario de Registro
+Formulario de registro (`/register`) incluyendo el nuevo campo "Nombre de usuario":
+
+![Formulario de Registro](Capturas/register_user.png)
+
+#### 👤 Perfil del Usuario
+Sección de perfil de usuario (`/profile`) mostrando el campo para visualizar y actualizar el "Nombre de usuario":
+
+![Perfil del Usuario](Capturas/profile_user.png)
+
+---
+
+### 💻 Código de las Modificaciones en el Repositorio
+
+#### A. Migración de la Tabla `users` (`database/migrations/0001_01_01_000000_create_users_table.php`)
+Se agregó la columna `username` única:
+```php
+Schema::create('users', function (Blueprint $table) {
+    $table->id();
+    $table->string('name');
+    $table->string('username')->unique(); // nuevo campo
+    $table->string('email')->unique();
+    $table->timestamp('email_verified_at')->nullable();
+    $table->string('password');
+    $table->rememberToken();
+    $table->timestamps();
+});
+```
+
+#### B. Modelo de Usuario (`app/Models/User.php`)
+Se agregó `'username'` al atributo `$fillable`:
+```php
+protected $fillable = [
+    'name',
+    'email',
+    'password',
+    'username',
+];
+```
+
+#### C. Vista del Formulario de Registro (`resources/views/auth/register.blade.php`)
+Input para el nombre de usuario:
+```html
+<!-- Username -->
+<div>
+    <x-input-label for="username" :value="__('Nombre de usuario')" />
+    <x-text-input id="username" class="block mt-1 w-full" type="text" name="username" :value="old('username')" required autofocus />
+    <x-input-error :messages="$errors->get('username')" class="mt-2" />
+</div>
+```
+
+#### D. Controlador de Registro Web (`app/Http/Controllers/Auth/RegisteredUserController.php`)
+Validación y almacenamiento de `username` en el método `store`:
+```php
+$request->validate([
+    'name' => ['required', 'string', 'max:255'],
+    'username' => ['required', 'string', 'max:255', 'unique:users'], // nuevo campo
+    'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
+    'password' => ['required', 'confirmed', Rules\Password::defaults()],
+]);
+
+$user = User::create([
+    'name' => $request->name,
+    'username' => $request->username,
+    'email' => $request->email,
+    'password' => Hash::make($request->password),
+]);
+```
+
+#### E. Formulario de Edición de Perfil (`resources/views/profile/partials/update-profile-information-form.blade.php`)
+Input para visualizar y editar el nombre de usuario:
+```html
+<div>
+    <x-input-label for="username" :value="__('Nombre de usuario')" />
+    <x-text-input id="username" name="username" type="text" class="mt-1 block w-full" :value="old('username', $user->username)" required autocomplete="username" />
+    <x-input-error class="mt-2" :messages="$errors->get('username')" />
+</div>
+```
+
+#### F. Validación de Actualización de Perfil (`app/Http/Requests/ProfileUpdateRequest.php`)
+Regla para validar la actualización de `username`:
+```php
+public function rules(): array
+{
+    return [
+        'name' => ['required', 'string', 'max:255'],
+        'username' => [
+            'required',
+            'string',
+            'max:255',
+            Rule::unique(User::class)->ignore($this->user()->id),
+        ],
+        'email' => [
+            'required',
+            'string',
+            'lowercase',
+            'email',
+            'max:255',
+            Rule::unique(User::class)->ignore($this->user()->id),
+        ],
+    ];
+}
+```
+
+#### G. Registro del Campo en la API (`app/Http/Controllers/Api/AuthController.php`)
+Validación y creación de `username` para el registro vía API:
+```php
+$validated = $request->validate([
+    'name' => 'required|string|max:255',
+    'username' => 'required|string|max:255|unique:users',
+    'email' => 'required|string|email|max:255|unique:users',
+    'password' => 'required|string|min:8|confirmed',
+]);
+
+$user = User::create([
+    'name' => $validated['name'],
+    'username' => $validated['username'],
+    'email' => $validated['email'],
+    'password' => bcrypt($validated['password']),
+    'rol' => 'user',
+]);
+```
+
+
