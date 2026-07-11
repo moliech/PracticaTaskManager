@@ -58,7 +58,7 @@ class TaskController extends Controller
         ]);
 
         $data = $request->all();
-        $data['user_id'] = auth()->id(); // Ajustado a 'user_id' para coincidir con tu fillable del modelo Task
+        $data['user_id'] = auth("api")->id(); // Ajustado a 'user_id' para coincidir con tu fillable del modelo Task
 
         Task::create($data);
 
