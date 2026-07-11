@@ -78,3 +78,36 @@ Para ejecutar las pruebas unitarias y de integración del proyecto:
 ```bash
 ./vendor/bin/sail php artisan test
 ```
+
+---
+
+## 🔌 API de Tareas (Autenticación JWT)
+
+El proyecto incluye una API REST para la gestión de tareas, protegida mediante tokens **JWT (JSON Web Tokens)** utilizando el paquete `tymon/jwt-auth`.
+
+### 🔑 Configuración del Secreto JWT
+Para firmar y validar los tokens de acceso, asegúrate de generar la clave secreta de JWT en tu archivo `.env`:
+```bash
+./vendor/bin/sail php artisan jwt:secret
+```
+
+### 📌 Listado de Endpoints
+Todas las rutas de la API están bajo el prefijo `/api`.
+
+| Método | Endpoint | Descripción | Requiere Autenticación | Cuerpo del Request / Parámetros |
+| :--- | :--- | :--- | :---: | :--- |
+| **POST** | `/api/register` | Registrar un nuevo usuario | No | `name`, `email`, `password`, `password_confirmation` |
+| **POST** | `/api/login` | Iniciar sesión y obtener token JWT | No | `email`, `password` |
+| **POST** | `/api/logout` | Cerrar sesión e invalidar el token | Sí (Bearer) | Ninguno |
+| **GET** | `/api/me` | Obtener el perfil del usuario autenticado | Sí (Bearer) | Ninguno |
+| **GET** | `/api/listarUsuarios` | Listar todos los usuarios del sistema | Sí (Bearer) | Ninguno |
+| **GET** | `/api/listarUsuario/{id}` | Ver los detalles de un usuario específico | Sí (Bearer) | `id` en la URL |
+| **GET** | `/api/tareas` | Listar todas las tareas (con su categoría y creador) | Sí (Bearer) | Ninguno |
+| **POST** | `/api/tareas` | Crear una nueva tarea | Sí (Bearer) | `titulo`, `descripcion` (opcional), `fecha_limite` (opcional), `category_id` |
+| **GET** | `/api/tareas/{id}` | Obtener el detalle de una tarea específica | Sí (Bearer) | `id` en la URL |
+| **PUT/PATCH**| `/api/tareas/{id}` | Editar una tarea (Solo creador o Administrador) | Sí (Bearer) | `titulo` (opcional), `descripcion` (opcional), `fecha_limite` (opcional), `category_id` (opcional), `estado` (opcional) |
+| **DELETE** | `/api/tareas/{id}` | Eliminar una tarea (Solo creador o Administrador) | Sí (Bearer) | `id` en la URL |
+
+> [!TIP]
+> Para probar los endpoints que requieren autenticación, debes incluir el token obtenido en el login dentro de las cabeceras HTTP de tu solicitud como `Authorization: Bearer <tu_token>`.
+
